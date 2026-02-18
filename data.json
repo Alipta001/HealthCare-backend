@@ -1,0 +1,8 @@
+{
+  "counter": {
+    "user-login": 8,
+    "user-purchase": 3,
+    "profile-update": 3,
+    "user-logout": 3
+  }
+}
