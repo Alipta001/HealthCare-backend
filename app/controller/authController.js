@@ -1,7 +1,8 @@
 // const jwt = require("jsonwebtoken");
 const sendEmailverificationOtp = require("../helper/sendEmailverification");
 const userSchema = require("../model/authModel");
-const otpSchema = require("../model/otpModel");
+const Otp = require("../model/otpModel");
+const { otpValidate } = require("../validators/authvalidator");
 const { regsiterValidate } = require("../validators/authvalidator");
 const bcrypt = require("bcrypt");
 
@@ -66,7 +67,7 @@ class AuthController {
 
   async otp(req, res) {
     try {
-      const { error, value } = otpSchema.validate(req.body);
+      const { error, value } = otpValidate.validate(req.body);
       if (error) {
         return res.status(400).json({
           status: false,
@@ -76,7 +77,7 @@ class AuthController {
 
       const { userId, otp } = value;
 
-      const checkOtp = await otpSchema.findOne({ userId, otp });
+      const checkOtp = await Otp.findOne({ userId, otp });
 
       if (!checkOtp) {
         return res.status(400).json({
@@ -84,7 +85,46 @@ class AuthController {
           message: "Invalid OTP, please request a new one",
         });
       }
-    } catch (err) {}
+
+      const existuser = await userSchema.findById(userId);
+      if (!existuser) {
+        return res.status(400).json({
+          status: false,
+          message: "user not found",
+        });
+      }
+
+      if (existuser.is_verified) {
+        return res.status(400).json({
+          status: false,
+          message: "Email already verified",
+        });
+      }
+
+      if (new Date() > checkOtp.expiresAt) {
+        await Otp.deleteMany({ userId });
+        await sendEmailverificationOtp(existuser);
+        return res.status(400).json({
+          status: false,
+          message: "OTP expired,A new OTP has been sent to your email.",
+        });
+      }
+
+      existuser.is_verified = true;
+      await Otp.deleteMany({ userId });
+      await existuser.save();
+
+      res.status(200).json({
+        status: true,
+        message: "Otp verified successfully ",
+      });
+    } catch (err) {
+      console.log("OTP VERIFY ERROR:", err);
+      return res.status(500).json({
+        status: false,
+        message: "Something went wrong. Please try again.",
+      });
+    }
   }
 }
 

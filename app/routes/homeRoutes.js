@@ -24,4 +24,5 @@ router.get("/product/details/:id", CrudController.listDetails);
 router.post("/product/cart", CrudController.cart);
 router.get("/product/cartlist", CrudController.cartList);
 router.post("/auth/register", AuthController.signUp);
+router.post("/verify_otp", AuthController.otp);
 module.exports = router;
