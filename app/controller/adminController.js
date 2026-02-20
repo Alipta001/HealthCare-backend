@@ -121,7 +121,7 @@ class AdminController {
 
       const listDelete = await DoctorSchema.findOne({ _id: listData });
 
-      console.log(listData,"listDelete")
+      console.log(listData, "listDelete");
       if (!listDelete) {
         return res.status(401).json({
           status: false,
@@ -138,6 +138,67 @@ class AdminController {
     } catch (err) {
       return res.status(500).json({
         status: false,
+        message: err.message,
+      });
+    }
+  }
+
+  async doctorUpdate(req, res) {
+    try {
+      const { id, name, specialization, fees, availableSlots } = req.body;
+      const existupdate = await DoctorSchema.findOne({ _id: id });
+      if (!existupdate) {
+        return res.status(400).json({
+          status: false,
+          message: "Id is required",
+        });
+      }
+
+      let updateData = await DoctorSchema.findByIdAndUpdate(
+        existupdate,
+        { name, specialization, fees, availableSlots },
+        { new: true }, //return new data
+      );
+
+      if (!updateData) {
+        return res.status(400).json({
+          status: false,
+          message: "Update not happen",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Doctor update successfull",
+        data: updateData,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: false,
+        message: err.message,
+      });
+    }
+  }
+
+  async doctorDetails(req, res) {
+    try {
+      let dataID = req.params.id;
+      let ID = await DoctorSchema.findOne({ _id: dataID });
+      if (!ID) {
+        return res.status(400).json({
+          status: false,
+          message: "This is not valid product ",
+        });
+      }
+
+      let data = await DoctorSchema.findById(ID);
+
+      return res.status(200).json({
+        status: true,
+        message: "Data fetch succesfull",
+        data: data,
+      });
+    } catch (err) {
+      return res.status(500).json({
         message: err.message,
       });
     }
