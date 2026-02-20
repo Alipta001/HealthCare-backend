@@ -1,11 +1,15 @@
 const joi = require("joi");
 
 const availableSlotSchema = joi.object({
-    date: joi.date().iso().required(),  
-    time: joi.string().length(4).pattern(/^[0-9]+$/).required()  
+  date: joi.date().iso().required(),
+  time: joi
+    .string()
+    .length(4)
+    .pattern(/^[0-9]+$/)
+    .required(),
 });
 
-const adminDoctorvalidate= joi.object({
+const adminDoctorvalidate = joi.object({
   name: joi.string().min(3).max(15).required().messages({
     "string.empty": `"name" cannot be empty`,
     "string.min": '"name" should have at least {#limit} characters',
@@ -21,8 +25,8 @@ const adminDoctorvalidate= joi.object({
     "string.min": `"price" should have at least {#limit} characters`,
     "any.required": `"price" is required`,
   }),
-   availableSlots: joi.array().items(availableSlotSchema).required()
-
+  availableSlots: joi.array().items(availableSlotSchema).required(),
+  departmentId: joi.required(),
 });
 
 module.exports = {

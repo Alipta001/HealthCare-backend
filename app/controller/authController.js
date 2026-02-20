@@ -1,5 +1,3 @@
-// const jwt = require("jsonwebtoken");
-const { use } = require("react");
 const sendEmailverificationOtp = require("../helper/sendEmailverification");
 const userSchema = require("../model/authModel");
 const Otp = require("../model/otpModel");
@@ -172,6 +170,7 @@ class AuthController {
           email: user.email,
           password: user.password,
           role: user.role,
+          id: user._id,
         },
         token,
       });

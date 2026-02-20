@@ -1,6 +1,7 @@
 const { loginvalidate } = require("../validators/authvalidator");
 const { adminDoctorvalidate } = require("../validators/postvalidator");
 const DoctorSchema = require("../model/AdminModel");
+const DepartmentSchema = require("../model/AdmindepartmentModel");
 const userSchema = require("../model/authModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -49,6 +50,7 @@ class AdminController {
           email: user.email,
           password: user.password,
           role: user.role,
+          id: user._id,
         },
         token,
       });
@@ -58,6 +60,26 @@ class AdminController {
         status: false,
         message: "Something is Error",
       });
+    }
+  }
+
+  async departmentCreate(req, res) {
+    const { name, description } = req.body;
+
+    try {
+      const department = new DepartmentSchema({
+        name,
+        description,
+      });
+
+      await department.save();
+      res
+        .status(201)
+        .json({ message: "Department created successfully", department });
+    } catch (err) {
+      res
+        .status(500)
+        .json({ message: "Error creating department", error: err });
     }
   }
 
@@ -72,7 +94,7 @@ class AdminController {
         });
       }
 
-      let { name, specialization, fees, availableSlots } = value;
+      let { name, specialization, fees, availableSlots, departmentId } = value;
       //   let userId = req?.user?.id;
       let exist = await DoctorSchema.findOne({ name });
       if (exist) {
@@ -85,6 +107,7 @@ class AdminController {
         specialization,
         fees,
         availableSlots,
+        departmentId,
       });
 
       let savePost = await data.save();

@@ -8,5 +8,5 @@ router.get("/admin/doctor/list", adminController.doctorListData);
 router.post("/admin/doctor/delete", adminController.doctorDelete);
 router.post("/admin/doctor/update", adminController.doctorUpdate);
 router.get("/admin/doctor/details/:id", adminController.doctorDetails);
-
+router.post("/admin/doctor/department", adminController.departmentCreate);
 module.exports = router;

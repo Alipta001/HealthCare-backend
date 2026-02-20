@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const SlotSchema = new mongoose.Schema({
@@ -21,6 +20,13 @@ const DoctorSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
+  departmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Department",
+    required: true,
+  },
+
   fees: {
     type: String,
     required: true,
