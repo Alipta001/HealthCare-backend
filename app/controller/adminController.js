@@ -1,6 +1,8 @@
 const { loginvalidate } = require("../validators/authvalidator");
 const { adminDoctorvalidate } = require("../validators/postvalidator");
 const DoctorSchema = require("../model/AdminModel");
+let transporter = require("../config/emailConfig");
+let AppointmentSchema = require("../model/AppointmentModel");
 const DepartmentSchema = require("../model/AdmindepartmentModel");
 const userSchema = require("../model/authModel");
 const bcrypt = require("bcrypt");
@@ -223,6 +225,60 @@ class AdminController {
     } catch (err) {
       return res.status(500).json({
         message: err.message,
+      });
+    }
+  }
+
+  async confirmAppointment(req, res) {
+    try {
+      let { id } = req.params;
+
+      let appointMent = await AppointmentSchema.findById(id);
+
+      if (!appointMent) {
+        return res.status(400).json({
+          status: false,
+          message: "Appointment not found",
+        });
+      }
+
+      if (appointMent.status == "Confirmed") {
+        return res.status(400).json({
+          status: false,
+          message: "Appoinment already Confirmed",
+        });
+      }
+
+      appointMent.status = "Confirmed";
+      await appointMent.save();
+
+      let user = await userSchema.findById(appointMent.userId);
+      await transporter.sendMail({
+        from: `"Hospital Management" <yourgmail@gmail.com>`,
+        to: user.email,
+        subject: "Appointment Booked Successfully",
+        html: `
+        <div style="font-family: Arial;">
+          <h2 style="color: green;"> Appointment Booked  Successfully</h2>
+          <p>Dear ${user.first_name},</p>
+          <p>Your appointment has been BookedSuccessfully.</p>
+          <p><strong>Date:</strong> ${appointMent.date}</p>
+          <p><strong>Time:</strong> ${appointMent.time}</p>
+          <br/>
+          <p>Thank you.</p>
+        </div>
+      `,
+      });
+      res.status(200).json({
+        status: true,
+        data: appointMent,
+        message: "Appoinmtent Confirmed sucessfully",
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: false,
+        message: "Something went wrong",
+        error:err.message
       });
     }
   }
