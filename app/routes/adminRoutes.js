@@ -14,8 +14,7 @@ router.put(
   "/admin/doctor/appointment/cancelld/:id",
   adminController.cancelledAppointment,
 );
-router.get(
-  "/admin/doctor/appointment/list",
-  adminController.appointMentList,
-);
+router.get("/admin/doctor/appointment/list", adminController.appointMentList);
+
+router.get(`/admin/departments/:departmentId/doctors`,adminController.departmentwiseDoctor);
 module.exports = router;

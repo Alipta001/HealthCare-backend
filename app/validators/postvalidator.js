@@ -9,23 +9,26 @@ const availableSlotSchema = joi.object({
 });
 
 const adminDoctorvalidate = joi.object({
-  name: joi.string().min(3).max(15).required().messages({
+  name: joi.string().required().messages({
     "string.empty": `"name" cannot be empty`,
     "string.min": '"name" should have at least {#limit} characters',
     "any.required": `"name" is required`,
   }),
-  specialization: joi.string().min(3).required().messages({
+  specialization: joi.string().required().messages({
     "string.empty": `"category" cannot be empty`,
     "string.min": `"category" should have at least {#limit} characters`,
     "any.required": `"category" is required`,
   }),
-  fees: joi.string().min(3).required().messages({
+  fees: joi.string().required().messages({
     "string.empty": `"price" cannot be empty`,
     "string.min": `"price" should have at least {#limit} characters`,
     "any.required": `"price" is required`,
   }),
   availableSlots: joi.array().items(availableSlotSchema).required(),
-  departmentId: joi.required(),
+  departmentId: joi.string().required().messages({
+  "string.empty": `"departmentId" cannot be empty`,
+  "any.required": `"departmentId" is required`,
+}),
 });
 
 module.exports = {

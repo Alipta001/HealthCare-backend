@@ -1,19 +1,19 @@
 const joi = require("joi");
 
 const regsiterValidate = joi.object({
-  first_name: joi.string().min(3).max(10).required().messages({
+  first_name: joi.string().required().messages({
     "string.empty": "First name cannot be empty",
     "string.min": '"first_name" should have at least {#limit} characters',
     "any.required": "First name is required",
   }),
 
-  last_name: joi.string().min(3).max(10).required().messages({
+  last_name: joi.string().required().messages({
     "string.empty": "Last name cannot be empty",
     "string.min": '"last_name" should have at least {#limit} characters',
     "any.required": "Last name is required",
   }),
 
-  email: joi.string().min(7).max(50).required().messages({
+  email: joi.string().required().messages({
     "string.empty": "email name cannot be empty",
     "string.min": "email should have at least {#limit} characters",
     "any.required": "Email is required",
@@ -64,7 +64,7 @@ const otpValidate = joi.object({
 });
 
 const loginvalidate = joi.object({
-  email: joi.string().min(7).max(50).required().messages({
+  email: joi.string().required().messages({
     "string.empty": "email name cannot be empty",
     "string.min": "email should have at least {#limit} characters",
     "any.required": "Email is required",

@@ -113,6 +113,9 @@ class AdminController {
       });
 
       let savePost = await data.save();
+      //  savePost = await DoctorSchema.findById(savePost.id).populate(
+      //   "departmentId",
+      // );
       return res.status(201).json({
         message: "Doctor  data create  successfully",
         data: savePost,
@@ -345,6 +348,28 @@ class AdminController {
       res.status(201).json({
         message: "Appointment list fetch successfull",
         data: appointlist,
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: false,
+        message: err.message,
+      });
+    }
+  }
+
+  async departmentwiseDoctor(req, res) {
+    try {
+      let { departmentId } = req.params;
+      console.log(departmentId);
+      let doctors = await DoctorSchema.find(
+        departmentId ? { departmentId: departmentId } : {},
+      ).populate("departmentId");
+
+      res.status(200).json({
+        status: true,
+        count: doctors.count,
+        data: doctors,
+        message: "Doctor fetched successfully",
       });
     } catch (err) {
       res.status(500).json({
