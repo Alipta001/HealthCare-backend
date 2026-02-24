@@ -19,7 +19,7 @@ const regsiterValidate = joi.object({
     "any.required": "Email is required",
   }),
 
-  address: joi.string().min(2).max(10).required().messages({
+  address: joi.string().min(2).required().messages({
     "string.empty": "Address name cannot be empty",
     "string.min": "address should have at least {#limit} characters",
     "any.required": "Address is required",

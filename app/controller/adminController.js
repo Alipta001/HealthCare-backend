@@ -278,7 +278,78 @@ class AdminController {
       res.status(500).json({
         status: false,
         message: "Something went wrong",
-        error:err.message
+        error: err.message,
+      });
+    }
+  }
+
+  async cancelledAppointment(req, res) {
+    try {
+      let { id } = req.params;
+
+      let appointMent = await AppointmentSchema.findById(id);
+
+      if (!appointMent) {
+        return res.status(400).json({
+          status: false,
+          message: "Appointment not found",
+        });
+      }
+
+      if (appointMent.status == "Cancelled") {
+        return res.status(400).json({
+          status: false,
+          message: "Appoinment Cancelled",
+        });
+      }
+
+      appointMent.status = "Cancelled";
+      await appointMent.save();
+
+      let user = await userSchema.findById(appointMent.userId);
+      await transporter.sendMail({
+        from: `"Hospital Management" <yourgmail@gmail.com>`,
+        to: user.email,
+        subject: "Appointment Booking Cancelled",
+        html: `
+        <div style="font-family: Arial;">
+          <h2 style="color: green;"> Appointment Booking Cancelled</h2>
+          <p>Dear ${user.first_name},</p>
+          <p>Your appointment has been Cancel.</p>
+          <p><strong>Date:</strong> ${appointMent.date}</p>
+          <p><strong>Time:</strong> ${appointMent.time}</p>
+          <br/>
+          <p>Thank you.</p>
+        </div>
+      `,
+      });
+      res.status(200).json({
+        status: true,
+        data: appointMent,
+        message: "Appoinmtent Cancelled",
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: false,
+        message: "Something went wrong",
+        error: err.message,
+      });
+    }
+  }
+
+  async appointMentList(req, res) {
+    try {
+      let appointlist = await AppointmentSchema.find({
+        status: "Pending",
+      }).sort({ createdAt: -1 });
+      res.status(201).json({
+        message: "Appointment list fetch successfull",
+        data: appointlist,
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: false,
+        message: err.message,
       });
     }
   }

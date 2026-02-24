@@ -4,8 +4,7 @@ const availableSlotSchema = joi.object({
   date: joi.date().iso().required(),
   time: joi
     .string()
-    .length(4)
-    .pattern(/^[0-9]+$/)
+    // .pattern(/^[0-9]+$/)
     .required(),
 });
 
