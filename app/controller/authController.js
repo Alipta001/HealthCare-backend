@@ -163,6 +163,21 @@ class AuthController {
         });
       }
 
+      let refreshToken = jwt.sign({ id: user._id }, "secrect_refresh", {
+        expiresIn: "7d",
+      });
+
+      user.refreshToken = refreshToken;
+
+      await user.save();
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
       res.status(200).json({
         status: true,
         message: "Login successfull",
