@@ -8,7 +8,7 @@ function checkRole(role) {
       return res.status(403).send("Access denied. No token provided.");
     }
 
-    jwt.verify(token, "secrect_key", (err, decoded) => {
+    jwt.verify(token, "secret_key", (err, decoded) => {
       if (err) {
         return res.status(403).send("Invalid token");
       }
@@ -18,6 +18,7 @@ function checkRole(role) {
       }
 
       req.user = decoded;
+      next();
     });
   };
 }

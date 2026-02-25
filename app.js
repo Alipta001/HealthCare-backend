@@ -8,7 +8,7 @@ const homeRoute = require("./app/routes/homeRoutes");
 const adminRoute = require("./app/routes/adminRoutes");
 const app = express();
 const cors = require("cors");
-// const checkRole = require("./app/middleware/auth");
+
 
 connectedDB();
 app.use(cors());

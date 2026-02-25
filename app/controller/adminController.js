@@ -130,9 +130,24 @@ class AdminController {
 
   async doctorListData(req, res) {
     try {
-      let list = await DoctorSchema.find().sort({ createdAt: -1 });
+      let { page = 1, limit = 10 } = req.body;
+      page = parseInt(page);
+      limit = parseInt(limit);
+      const skip = (page - 1) * limit;
+      const totalItems = await DoctorSchema.countDocuments();
+
+      page = await DoctorSchema.create();
+
+      let list = await DoctorSchema.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
       res.status(201).json({
         message: "Doctor list fetch successfull",
+        page,
+        limit,
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
         data: list,
       });
     } catch (err) {

@@ -163,9 +163,13 @@ class AuthController {
         });
       }
 
-      let refreshToken = jwt.sign({ id: user._id }, "secrect_refresh", {
-        expiresIn: "7d",
-      });
+      let refreshToken;
+
+      if (user.role === "user") {
+        refreshToken = jwt.sign({ id: user._id }, "secret_refresh,", {
+          expiresIn: "7d",
+        });
+      }
 
       user.refreshToken = refreshToken;
 
@@ -183,7 +187,6 @@ class AuthController {
         message: "Login successfull",
         data: {
           email: user.email,
-          password: user.password,
           role: user.role,
           id: user._id,
         },
