@@ -41,7 +41,7 @@ class AdminController {
       let token;
       if (user && isMatch && user.role === "admin") {
         token = jwt.sign({ id: user._id, role: user.role }, "secret_key", {
-          expiresIn: "1h",
+          expiresIn: "5m",
         });
       }
 

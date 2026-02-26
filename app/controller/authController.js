@@ -160,7 +160,7 @@ class AuthController {
       let token;
       if (user && isMatch && user.role === "user") {
         token = jwt.sign({ id: user._id, role: user.role }, "secret_key", {
-          expiresIn: "1h",
+          expiresIn: "5m",
         });
       }
 
@@ -218,7 +218,7 @@ class AuthController {
         });
       }
 
-      let user = await userSchema.find({ refreshtoken });
+      let user = await userSchema.findOne({ refreshToken: refreshtoken });
 
       if (!user) {
         return res.status(403).json({
@@ -238,7 +238,7 @@ class AuthController {
           { id: user._id, role: user.role },
           "secret_key",
           {
-            expiresIn: "1h",
+            expiresIn: "5m",
           },
         );
 
