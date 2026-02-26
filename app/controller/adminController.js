@@ -4,7 +4,7 @@ const DoctorSchema = require("../model/AdminModel");
 let transporter = require("../config/emailConfig");
 let AppointmentSchema = require("../model/AppointmentModel");
 const DepartmentSchema = require("../model/AdmindepartmentModel");
-const userSchema = require("../model/authModel");
+const adminSchema = require("../model/adminUser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -21,7 +21,7 @@ class AdminController {
 
       const { email, password } = value;
 
-      let user = await userSchema.findOne({ email });
+      let user = await adminSchema.findOne({ email });
 
       if (!user) {
         return res.status(401).json({
@@ -50,7 +50,6 @@ class AdminController {
         message: "Admin login successfull",
         data: {
           email: user.email,
-          password: user.password,
           role: user.role,
           id: user._id,
         },
@@ -270,7 +269,7 @@ class AdminController {
       appointMent.status = "Confirmed";
       await appointMent.save();
 
-      let user = await userSchema.findById(appointMent.userId);
+      let user = await adminSchema.findById(appointMent.userId);
       await transporter.sendMail({
         from: `"Hospital Management" <yourgmail@gmail.com>`,
         to: user.email,
@@ -324,7 +323,7 @@ class AdminController {
       appointMent.status = "Cancelled";
       await appointMent.save();
 
-      let user = await userSchema.findById(appointMent.userId);
+      let user = await adminSchema.findById(appointMent.userId);
       await transporter.sendMail({
         from: `"Hospital Management" <yourgmail@gmail.com>`,
         to: user.email,

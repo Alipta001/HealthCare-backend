@@ -1,4 +1,3 @@
-const { error } = require("jquery");
 const sendEmailverificationOtp = require("../helper/sendEmailverification");
 const userSchema = require("../model/authModel");
 const Otp = require("../model/otpModel");
@@ -22,14 +21,21 @@ class AuthController {
       const { first_name, last_name, email, address, password } = value;
 
       const EmailCheck = await userSchema.findOne({ email });
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       if (EmailCheck) {
+        if (!EmailCheck.is_verified) {
+          await sendEmailverificationOtp(EmailCheck);
+          return res.status(200).json({
+            status: true,
+            message: "Email already registered but OTP resent",
+          });
+        }
         return res.status(400).json({
           status: false,
           message: "Email Already exist",
         });
       }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
 
       const Data = await userSchema.create({
         first_name,
@@ -41,11 +47,6 @@ class AuthController {
       });
 
       await sendEmailverificationOtp(Data);
-      // const secret = process.env.JWT_SECRET || "sagnikduttawebskitters";
-
-      // const token = jwt.sign({ id: Data._id, email: Data.email }, secret, {
-      //   expiresIn: "1d",
-      // });
 
       res.status(200).json({
         status: true,
@@ -78,7 +79,15 @@ class AuthController {
 
       const { userId, otp } = value;
 
-      const checkOtp = await Otp.findOne({ userId, otp });
+      console.log("Received userId:", userId);
+      console.log("Received otp:", otp);
+
+      const checkOtp = await Otp.findOne({
+        userId: String(userId),
+        otp: String(otp),
+      });
+
+      console.log("OTP found:", checkOtp);
 
       if (!checkOtp) {
         return res.status(400).json({
@@ -91,7 +100,7 @@ class AuthController {
       if (!existuser) {
         return res.status(400).json({
           status: false,
-          message: "user not found",
+          message: "User not found",
         });
       }
 
@@ -103,11 +112,12 @@ class AuthController {
       }
 
       if (new Date() > checkOtp.expiresAt) {
+        console.log("OTP expired, resending...");
         await Otp.deleteMany({ userId });
         await sendEmailverificationOtp(existuser);
         return res.status(400).json({
           status: false,
-          message: "OTP expired,A new OTP has been sent to your email.",
+          message: "OTP expired, A new OTP has been sent to your email.",
         });
       }
 
@@ -117,7 +127,7 @@ class AuthController {
 
       res.status(200).json({
         status: true,
-        message: "Otp verified successfully ",
+        message: "OTP verified successfully",
       });
     } catch (err) {
       console.log("OTP VERIFY ERROR:", err);
