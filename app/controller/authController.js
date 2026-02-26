@@ -1,12 +1,13 @@
 const sendEmailverificationOtp = require("../helper/sendEmailverification");
 const userSchema = require("../model/authModel");
 const Otp = require("../model/otpModel");
-const { otpValidate } = require("../validators/authvalidator");
-const { regsiterValidate } = require("../validators/authvalidator");
-const { loginvalidate } = require("../validators/authvalidator");
+const { otpValidate, regsiterValidate, loginvalidate } = require("../validators/authvalidator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
 class AuthController {
+
+  /* REGISTER */
   async signUp(req, res) {
     try {
       const { error, value } = regsiterValidate.validate(req.body);
@@ -14,51 +15,38 @@ class AuthController {
       if (error) {
         return res.status(400).json({
           status: false,
-          message: error.details.map((d) => d.message).join(", "),
+          message: error.details.map(d => d.message).join(", "),
         });
       }
 
       const { first_name, last_name, email, address, password } = value;
 
-      const EmailCheck = await userSchema.findOne({ email });
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const existing = await userSchema.findOne({ email });
 
-      if (EmailCheck) {
-        if (!EmailCheck.is_verified) {
-          await sendEmailverificationOtp(EmailCheck);
-          return res.status(200).json({
-            status: true,
-            message: "Email already registered but OTP resent",
-          });
-        }
+      if (existing) {
         return res.status(400).json({
           status: false,
-          message: "Email Already exist",
+          message: "Email already exists",
         });
       }
 
-      const Data = await userSchema.create({
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await userSchema.create({
         first_name,
         last_name,
         email,
         address,
         password: hashedPassword,
-        is_verified: false,
+        role: "user",
+        is_verified: true,
       });
-
-      await sendEmailverificationOtp(Data);
 
       res.status(200).json({
         status: true,
-        message: "Register successfull and otp send you succesfully",
-        data: {
-          id: Data._id,
-          name: `${Data.first_name} ${Data.last_name}`,
-          email: Data.email,
-          address: Data.address,
-        },
-        // token,
+        message: "Registration successful",
       });
+
     } catch (err) {
       res.status(500).json({
         status: false,
@@ -67,205 +55,84 @@ class AuthController {
     }
   }
 
-  async otp(req, res) {
-    try {
-      const { error, value } = otpValidate.validate(req.body);
-      if (error) {
-        return res.status(400).json({
-          status: false,
-          message: error.details.map((item) => item.message).join(),
-        });
-      }
-
-      const { userId, otp } = value;
-
-      console.log("Received userId:", userId);
-      console.log("Received otp:", otp);
-
-      const checkOtp = await Otp.findOne({
-        userId: String(userId),
-        otp: String(otp),
-      });
-
-      console.log("OTP found:", checkOtp);
-
-      if (!checkOtp) {
-        return res.status(400).json({
-          status: false,
-          message: "Invalid OTP, please request a new one",
-        });
-      }
-
-      const existuser = await userSchema.findById(userId);
-      if (!existuser) {
-        return res.status(400).json({
-          status: false,
-          message: "User not found",
-        });
-      }
-
-      if (existuser.is_verified) {
-        return res.status(400).json({
-          status: false,
-          message: "Email already verified",
-        });
-      }
-
-      if (new Date() > checkOtp.expiresAt) {
-        console.log("OTP expired, resending...");
-        await Otp.deleteMany({ userId });
-        await sendEmailverificationOtp(existuser);
-        return res.status(400).json({
-          status: false,
-          message: "OTP expired, A new OTP has been sent to your email.",
-        });
-      }
-
-      existuser.is_verified = true;
-      await Otp.deleteMany({ userId });
-      await existuser.save();
-
-      res.status(200).json({
-        status: true,
-        message: "OTP verified successfully",
-      });
-    } catch (err) {
-      console.log("OTP VERIFY ERROR:", err);
-      return res.status(500).json({
-        status: false,
-        message: "Something went wrong. Please try again.",
-      });
-    }
-  }
-
+  /* LOGIN */
   async signIn(req, res) {
     try {
       const { error, value } = loginvalidate.validate(req.body);
+
       if (error) {
         return res.status(400).json({
           status: false,
-          message: error.details.map((d) => d.message).join(", "),
+          message: error.details.map(d => d.message).join(", "),
         });
       }
 
       const { email, password } = value;
 
-      let user = await userSchema.findOne({ email });
+      const user = await userSchema.findOne({ email });
 
       if (!user) {
         return res.status(401).json({
           status: false,
-          message: "Invalid email and password",
+          message: "Invalid email or password",
         });
       }
 
-      let isMatch = await bcrypt.compare(password, user.password);
+      const isMatch = await bcrypt.compare(password, user.password);
+
       if (!isMatch) {
         return res.status(401).json({
           status: false,
-          message: "Invalid email and password",
+          message: "Invalid email or password",
         });
       }
 
-      let token;
-      if (user && isMatch && user.role === "user") {
-        token = jwt.sign({ id: user._id, role: user.role }, "secret_key", {
-          expiresIn: "5m",
-        });
-      }
+      /* ACCESS TOKEN */
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        "secret_key",
+        { expiresIn: "5m" }
+      );
 
-      let refreshToken;
-
-      if (user.role === "user") {
-        refreshToken = jwt.sign(
-          { id: user._id, role: user.role },
-          "secret_refresh",
-          {
-            expiresIn: "7d",
-          },
-        );
-      }
+      /* REFRESH TOKEN */
+      const refreshToken = jwt.sign(
+        { id: user._id, role: user.role },
+        "secret_refresh",
+        { expiresIn: "7d" }
+      );
 
       user.refreshToken = refreshToken;
-
       await user.save();
+
+      /* SET COOKIE */
+      res.cookie("token", token, {
+        httpOnly: false,
+        secure: true,
+        sameSite: "None",
+        maxAge: 5 * 60 * 1000,
+      });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: false,
-        sameSite: "lax",
+        secure: true,
+        sameSite: "None",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       res.status(200).json({
         status: true,
-        message: "Login successfull",
-        data: {
-          email: user.email,
-          role: user.role,
-          id: user._id,
-        },
+        message: "Login successful",
         token,
       });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({
-        status: false,
-        message: "Something is Error",
-      });
-    }
-  }
 
-  async refreshToken(req, res) {
-    try {
-      let refreshtoken = req.cookies.refreshToken;
-
-      console.log(refreshtoken, "refreshtoken");
-      if (!refreshtoken) {
-        return res.status(403).json({
-          status: false,
-          message: "No token Here",
-        });
-      }
-
-      let user = await userSchema.findOne({ refreshToken: refreshtoken });
-
-      if (!user) {
-        return res.status(403).json({
-          status: false,
-          message: "Invalid user",
-        });
-      }
-
-      jwt.verify(refreshtoken, "secret_refresh", (err, decoded) => {
-        if (err) {
-          return res.status(400).json({
-            status: false,
-            message: "Error showing",
-          });
-        }
-        const newAccessToken = jwt.sign(
-          { id: user._id, role: user.role },
-          "secret_key",
-          {
-            expiresIn: "5m",
-          },
-        );
-
-        res.status(200).json({
-          status: true,
-          token: newAccessToken,
-          message: "Access token refreshed successfully",
-        });
-      });
     } catch (err) {
       res.status(500).json({
         status: false,
-        message: "Error showing",
-        error: err.message,
+        message: err.message,
       });
     }
   }
+
 }
 
 module.exports = new AuthController();

@@ -9,44 +9,43 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
+/* CONNECT DATABASE */
 connectedDB();
 
-/* ✅ FIXED CORS */
+/* CORS CONFIG — REQUIRED */
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://doctor-booking-rosy.vercel.app", // change to your frontend URL
+      "https://doctor-booking-rosy.vercel.app",
     ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "x-access-token"],
     credentials: true,
   })
 );
 
-app.set("view engine", "ejs");
-app.set("views", "views");
-
+/* MIDDLEWARE */
 app.use(express.json());
-app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
+/* STATIC */
 app.use(express.static(path.join(__dirname, "public")));
 
-const PORT = process.env.PORT || 4000;
-
-/* Public route */
+/* PUBLIC ROUTE */
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "success",
-    message: "HealthCare Backend API is running 🚀",
+    message: "HealthCare Backend API running 🚀",
   });
 });
 
-/* Routes */
+/* ROUTES */
 app.use(homeRoute);
 app.use(adminRoute);
 
+/* PORT */
+const PORT = process.env.PORT || 4000;
+
 app.listen(PORT, () => {
-  console.log(`server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
