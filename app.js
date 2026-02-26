@@ -11,7 +11,19 @@ const cors = require("cors");
 
 connectedDB();
 
-app.use(cors());
+/* ✅ FIXED CORS */
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://health-care-frontend.vercel.app", // change to your frontend URL
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "x-access-token"],
+    credentials: true,
+  })
+);
+
 app.set("view engine", "ejs");
 app.set("views", "views");
 
@@ -23,15 +35,15 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 4000;
 
-/* ✅ ADD THIS PUBLIC ROUTE */
+/* Public route */
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "success",
-    message: "HealthCare Backend API is running 🚀"
+    message: "HealthCare Backend API is running 🚀",
   });
 });
 
-/* YOUR ROUTES */
+/* Routes */
 app.use(homeRoute);
 app.use(adminRoute);
 
