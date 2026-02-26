@@ -1,18 +1,19 @@
 require("dotenv").config();
+
 const express = require("express");
-const path = require("path");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+
 const connectedDB = require("./app/config/dbcon");
+
 const homeRoute = require("./app/routes/homeRoutes");
 const adminRoute = require("./app/routes/adminRoutes");
 
 const app = express();
-const cookieParser = require("cookie-parser");
-const cors = require("cors");
 
-/* CONNECT DATABASE */
 connectedDB();
 
-/* CORS CONFIG — REQUIRED */
+/* CORS */
 app.use(
   cors({
     origin: [
@@ -23,29 +24,24 @@ app.use(
   })
 );
 
-/* MIDDLEWARE */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-/* STATIC */
-app.use(express.static(path.join(__dirname, "public")));
-
-/* PUBLIC ROUTE */
+/* Public test route */
 app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "HealthCare Backend API running 🚀",
+  res.json({
+    status: true,
+    message: "Backend working successfully 🚀",
   });
 });
 
-/* ROUTES */
+/* Routes */
 app.use(homeRoute);
 app.use(adminRoute);
 
-/* PORT */
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port", PORT);
 });

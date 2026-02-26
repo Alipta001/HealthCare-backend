@@ -15,10 +15,10 @@ function checkRole(role) {
     }
 
     if (token.startsWith("Bearer ")) {
-      token = token.slice(7, token.length);
+      token = token.slice(7);
     }
 
-    jwt.verify(token, "secret_key", (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         return res.status(401).json({
           status: false,
