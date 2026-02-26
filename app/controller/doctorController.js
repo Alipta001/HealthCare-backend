@@ -2,9 +2,13 @@ let appointmentValidate = require("../validators/appointmentvalidator");
 let AppointmentSchema = require("../model/AppointmentModel");
 let transporter = require("../config/emailConfig");
 const userSchema = require("../model/authModel");
+
 class DoctorControllerUser {
-  async apponintmentCreate(req, res) {
+
+  async appointmentCreate(req, res) {  // ✅ FIXED spelling
+
     try {
+
       let { error, value } = appointmentValidate.validate(req.body);
 
       if (error) {
@@ -21,7 +25,7 @@ class DoctorControllerUser {
       if (exist) {
         return res.status(401).json({
           status: false,
-          message: "This time slot is already booked by another patient.",
+          message: "This time slot is already booked.",
         });
       }
 
@@ -32,38 +36,37 @@ class DoctorControllerUser {
         time,
         status,
       });
+
       let user = await userSchema.findById(userId);
+
       await transporter.sendMail({
         from: `"Hospital Management" <yourgmail@gmail.com>`,
         to: user.email,
         subject: "Appointment Booking Pending",
         html: `
-        <div style="font-family: Arial;">
-          <h2 style="color: green;"> Appointment Booking  Pending</h2>
-          <p>Dear ${user.first_name},</p>
-          <p>Your appointment has been Pending.</p>
-          <p><strong>Date:</strong> ${date}</p>
-          <p><strong>Time:</strong> ${time}</p>
-          <br/>
-          <p>Thank you.</p>
-        </div>
-      `,
+          <h2>Appointment Pending</h2>
+          <p>Date: ${date}</p>
+          <p>Time: ${time}</p>
+        `,
       });
+
       res.status(200).json({
         status: true,
         data: data,
         message: "Appointment created successfully!",
       });
 
-      console.log(data, "jjj");
     } catch (err) {
+
       res.status(500).json({
         status: false,
-        error: err.message,
-        message: "Error creating appointment",
+        message: err.message,
       });
+
     }
+
   }
+
 }
 
 module.exports = new DoctorControllerUser();
