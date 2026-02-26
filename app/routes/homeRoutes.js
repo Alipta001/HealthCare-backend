@@ -6,5 +6,10 @@ const router = express.Router();
 router.post("/auth/register", AuthController.signUp);
 router.post("/auth/login", AuthController.signIn);
 router.post("/auth/verify_otp", AuthController.otp);
-router.post("/doctor/appointment",checkRole("user"), DoctorControllerUser.apponintmentCreate);
+router.post("/refresh-token", AuthController.refreshToken);
+router.post(
+  "/doctor/appointment",
+  checkRole("user"),
+  DoctorControllerUser.apponintmentCreate,
+);
 module.exports = router;

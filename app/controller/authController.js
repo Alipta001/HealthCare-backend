@@ -1,3 +1,4 @@
+const { error } = require("jquery");
 const sendEmailverificationOtp = require("../helper/sendEmailverification");
 const userSchema = require("../model/authModel");
 const Otp = require("../model/otpModel");
@@ -166,9 +167,13 @@ class AuthController {
       let refreshToken;
 
       if (user.role === "user") {
-        refreshToken = jwt.sign({ id: user._id }, "secret_refresh,", {
-          expiresIn: "7d",
-        });
+        refreshToken = jwt.sign(
+          { id: user._id, role: user.role },
+          "secret_refresh",
+          {
+            expiresIn: "7d",
+          },
+        );
       }
 
       user.refreshToken = refreshToken;
@@ -197,6 +202,57 @@ class AuthController {
       return res.status(500).json({
         status: false,
         message: "Something is Error",
+      });
+    }
+  }
+
+  async refreshToken(req, res) {
+    try {
+      let refreshtoken = req.cookies.refreshToken;
+
+      console.log(refreshtoken, "refreshtoken");
+      if (!refreshtoken) {
+        return res.status(403).json({
+          status: false,
+          message: "No token Here",
+        });
+      }
+
+      let user = await userSchema.find({ refreshtoken });
+
+      if (!user) {
+        return res.status(403).json({
+          status: false,
+          message: "Invalid user",
+        });
+      }
+
+      jwt.verify(refreshtoken, "secret_refresh", (err, decoded) => {
+        if (err) {
+          return res.status(400).json({
+            status: false,
+            message: "Error showing",
+          });
+        }
+        const newAccessToken = jwt.sign(
+          { id: user._id, role: user.role },
+          "secret_key",
+          {
+            expiresIn: "1h",
+          },
+        );
+
+        res.status(200).json({
+          status: true,
+          token: newAccessToken,
+          message: "Access token refreshed successfully",
+        });
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: false,
+        message: "Error showing",
+        error: err.message,
       });
     }
   }
