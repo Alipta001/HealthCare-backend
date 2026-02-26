@@ -16,7 +16,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://health-care-frontend.vercel.app", // change to your frontend URL
+      "https://doctor-booking-rosy.vercel.app/", // change to your frontend URL
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "x-access-token"],
